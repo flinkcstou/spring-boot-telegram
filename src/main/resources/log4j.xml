@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration debug="true">
+  
+  <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+    <errorHandler class="org.apache.log4j.helpers.OnlyOnceErrorHandler"/>
+    <param name="Target" value="System.out"/>
+    <param name="Threshold" value="DEBUG"/>
+    
+    <layout class="kz.greetgo.cash_management_service.logging.MyLog4jLayout">
+      <param name="LoggerNameCut" value="2"/>
+    </layout>
+  </appender>
+  
+  <appender name="SERVER" class="org.apache.log4j.RollingFileAppender">
+    <param name="File" value="${user.home}/cash_management_service.d/logs/server.log"/>
+    <param name="Threshold" value="INFO"/>
+    <param name="Append" value="true"/>
+    <param name="MaxFileSize" value="100MB"/>
+    <param name="MaxBackupIndex" value="100"/>
+    
+    <layout class="kz.greetgo.cash_management_service.logging.MyLog4jLayout">
+      <param name="LoggerNameCut" value="0"/>
+    </layout>
+  </appender>
+  
+  <appender name="REGISTER." class="org.apache.log4j.RollingFileAppender">
+    <param name="File" value="${user.home}/cash_management_service.d/logs/register.log"/>
+    <param name="Threshold" value="INFO"/>
+    <param name="Append" value="true"/>
+    <param name="MaxFileSize" value="100MB"/>
+    <param name="MaxBackupIndex" value="100"/>
+    
+    <layout class="kz.greetgo.cash_management_service.logging.MyLog4jLayout">
+      <param name="LoggerNameCut" value="0"/>
+    </layout>
+  </appender>
+  
+  <appender name="STAGE." class="org.apache.log4j.RollingFileAppender">
+    <param name="File" value="${user.home}/cash_management_service.d/logs/stage.log"/>
+    <param name="Threshold" value="INFO"/>
+    <param name="Append" value="true"/>
+    <param name="MaxFileSize" value="100MB"/>
+    <param name="MaxBackupIndex" value="100"/>
+    
+    <layout class="kz.greetgo.cash_management_service.logging.MyLog4jLayout">
+      <param name="LoggerNameCut" value="0"/>
+    </layout>
+  </appender>
+  
+  <category name="REGISTER.">
+    <priority value="INFO"/>
+    <appender-ref ref="REGISTER."/>
+  </category>
+  
+  <category name="STAGE.">
+    <priority value="INFO"/>
+    <appender-ref ref="STAGE."/>
+  </category>
+  
+  <root>
+    <priority value="INFO"/>
+    <appender-ref ref="SERVER"/>
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</log4j:configuration>

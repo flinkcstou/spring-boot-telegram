@@ -1,0 +1,98 @@
+plugins {
+  id 'com.palantir.docker' version '0.22.1'
+  id 'com.palantir.docker-run' version '0.22.1'
+  id 'nebula.release' version "11.1.2"
+  id 'org.springframework.boot' version '2.1.8.RELEASE'
+  id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+  id 'java'
+  id 'war'
+}
+apply from: "${rootDir.path}/gradle/release_control.gradle"
+apply from: "${rootDir.path}/gradle/docker.gradle"
+
+group = 'kz.greetgo'
+sourceCompatibility = '1.8'
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+repositories {
+  mavenLocal()
+  maven { url = 'https://nexus.aixkz.com/repository/maven-public/' }
+  mavenCentral()
+}
+
+dependencies {
+  ext.greetgoDbVersion = '2.3.4'
+  ext.greetgoLibase = '1.0.10'
+
+  implementation "kz.greetgo.conf:greetgo.conf.spring.cloud:1.3.0"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-security:2.1.3.RELEASE"
+  implementation "org.liquibase:liquibase-core"
+  implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.0"
+  implementation "io.springfox:springfox-swagger2:2.9.2"
+  implementation "io.springfox:springfox-swagger-ui:2.9.2"
+  implementation "com.squareup.okhttp3:okhttp:3.13.1"
+  implementation "kz.greetgo.db:greetgo.nf36:$greetgoDbVersion"
+  implementation "kz.greetgo.conf:greetgo.conf.spring.cloud:1.3.0"
+  implementation "kz.greetgo:greetgo.fstorage:2.1.2"
+  implementation "commons-lang:commons-lang:2.6"
+  implementation 'kz.greetgo.util:greetgo.util:0.1.4'
+  implementation "org.postgresql:postgresql"
+  implementation "log4j:log4j:1.2.17"
+
+  runtimeOnly "org.postgresql:postgresql"
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+
+  providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
+
+  testImplementation "org.mybatis.spring.boot:mybatis-spring-boot-starter-test:2.1.0"
+  testImplementation "kz.greetgo:greetgo.libase:$greetgoLibase"
+  testImplementation "kz.greetgo.db:greetgo.nf36.gen:$greetgoDbVersion"
+  testImplementation "org.easytesting:fest-assert-core:2.0M10"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "kz.greetgo.conf:greetgo.sys_params:1.3.0"
+
+}
+
+test {
+  useTestNG()
+}
+
+webAppDirName = 'webapps'
+
+bootJar {
+
+  manifest {
+    attributes 'Specification-Title': project.name
+    attributes 'Specification-Version': version ?: 'dev'
+    attributes 'Specification-Vendor': "greetgo!"
+    attributes 'Created-By': System.getProperty("user.name")
+    attributes 'Created-At': new Date().format("yyyy-MM-dd/HH:mm:ss")
+  }
+}
+
+bootWar {
+  rootSpec.exclude 'ant-*.jar'
+  rootSpec.exclude 'ant-launcher-*.jar'
+
+  manifest {
+    attributes 'Specification-Title': project.name
+    attributes 'Specification-Version': version ?: 'dev'
+    attributes 'Specification-Vendor': "greetgo!"
+    attributes 'Created-By': System.getProperty("user.name")
+    attributes 'Created-At': new Date().format("yyyy-MM-dd/HH:mm:ss")
+  }
+}
+
+task allDeps(type: DependencyReportTask) {}
+
+tasks.dockerPrepare.dependsOn tasks.bootWar
+tasks.release.finalizedBy tasks.docker
+
+sourceSets.main.java.srcDirs += "src/nf36_gen"

@@ -1,0 +1,43 @@
+final String container = project.hasProperty("container") ? project.property("container") : null
+final String repository = project.hasProperty("repository") ? project.property("repository") : null
+final String tag = project.hasProperty("imageTag") ? project.property("imageTag") : null
+final String runPort = project.hasProperty("runPort") ? project.property("runPort") : null
+
+final String envPrefix = "env."
+final Map<String, String> pEnv = extractPropertiesByPrefix(envPrefix).collectEntries {
+  [it.key.substring(envPrefix.length()), it.value]
+} as Map<String, String>
+
+
+docker {
+  name getImageFullName(repository, tag)
+  files project.buildDir.path + '/libs'
+  buildArgs(["war_path": "${project.war.archiveFileName.get()}"])
+}
+
+dockerRun {
+  name "${container ?: project.name}"
+  image getImageFullName(repository, tag)
+  ports "${runPort ?: 8080}:8080"
+  daemonize true
+  env(pEnv)
+  clean true
+}
+
+private Map<String, String> extractPropertiesByPrefix(String envPrefix) {
+  project.properties.keySet().findAll {
+    it.startsWith(envPrefix)
+  }.collectEntries {
+    [it, project.property(it)]
+  }
+}
+
+private String getImageFullName(String repository, tag) {
+  "${repository ?: rootProject.name}" +
+    ":" +
+    "${tag ?: sanitizeVersion() ?: "latest"}"
+}
+
+private String sanitizeVersion() {
+  version?.toString()?.replaceAll("[\\W&&[^/.]]", "_")
+}

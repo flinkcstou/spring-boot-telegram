@@ -1,0 +1,35 @@
+nebulaRelease {
+  releaseBranchPatterns = [/master/, /HEAD/, /stage/, /(release(-|\/))?\d+(\.\d+)?\.x/, /v?\d+\.\d+\.\d+/] as Set
+}
+
+release {
+  tagStrategy {
+    generateMessage = { version ->
+      StringBuilder builder = new StringBuilder()
+      builder << "Release of ${version.version}\n\n"
+
+      if (version.previousVersion) {
+        String previousVersion = "v${version.previousVersion}^{commit}"
+        List excludes = []
+
+        try {
+          grgit.resolve.toCommit(revStr)
+          excludes << previousVersion
+        } catch (e) {
+          // ignore
+        }
+        grgit.log(
+          includes: ['HEAD'],
+          excludes: excludes
+        ).inject(builder) { bldr, commit ->
+          if (!commit?.shortMessage?.trim()?.startsWith("##")) {
+            return bldr
+          }
+          return bldr << "${commit.shortMessage}\n"
+        }
+      }
+      builder.toString()
+    }
+
+  }
+}
